@@ -1,0 +1,381 @@
+import java.util.Scanner;
+import java.util.Random;
+
+class Player {
+    String name;
+    int health = 100;
+    int hunger = 100;
+    int ammo = 20;
+    int supplies = 5;
+    int zombiesKilled = 0;
+    int daysSurvived = 0;
+    String[] inventory = new String[10];
+    int inventoryCount = 0;
+
+    void addItem(String item) {
+        if (inventoryCount < 10) {
+            inventory[inventoryCount++] = item;
+            System.out.println("✓ " + item + " added to inventory!");
+        } else {
+            System.out.println("Inventory full!");
+        }
+    }
+
+    void showStatus() {
+        System.out.println("\n╔════════════════════════════════════╗");
+        System.out.println("║        SURVIVOR STATUS             ║");
+        System.out.println("╠════════════════════════════════════╣");
+        System.out.printf("║ Name: %-28s ║%n", name);
+        System.out.printf("║ Health: %-26d ║%n", health);
+        System.out.printf("║ Hunger: %-26d ║%n", hunger);
+        System.out.printf("║ Ammo: %-28d ║%n", ammo);
+        System.out.printf("║ Supplies: %-24d ║%n", supplies);
+        System.out.printf("║ Zombies Killed: %-18d ║%n", zombiesKilled);
+        System.out.printf("║ Days Survived: %-19d ║%n", daysSurvived);
+        System.out.println("╚════════════════════════════════════╝");
+    }
+}
+
+class Zombie {
+    String type;
+    int health;
+    int damage;
+
+    Zombie(String type, int health, int damage) {
+        this.type = type;
+        this.health = health;
+        this.damage = damage;
+    }
+}
+
+public class ZombieApocalypse {
+    static Player player;
+    static Scanner scanner = new Scanner(System.in);
+    static Random random = new Random();
+    static boolean gameOver = false;
+    static String[] locations = {"Abandoned Hospital", "Grocery Store", "Police Station",
+            "Military Base", "Gas Station", "Shopping Mall"};
+
+    public static void main(String[] args) {
+        displayIntro();
+        initializePlayer();
+
+        System.out.println("\n🧟 The infection has spread...");
+        System.out.println("Your mission: Survive as long as possible!");
+        pause();
+
+        while (!gameOver) {
+            player.daysSurvived++;
+            System.out.println("\n" + "=".repeat(50));
+            System.out.println("           DAY " + player.daysSurvived + " - Dawn Breaks");
+            System.out.println("=".repeat(50));
+
+            player.hunger -= 15;
+            if (player.hunger < 0) player.hunger = 0;
+
+            if (player.hunger == 0) {
+                player.health -= 20;
+                System.out.println("⚠ You're starving! Health decreasing...");
+            }
+
+            if (player.health <= 0) {
+                gameOver();
+                break;
+            }
+
+            dailyMenu();
+        }
+
+        scanner.close();
+    }
+
+    static void displayIntro() {
+        System.out.println("\n╔═══════════════════════════════════════════════════╗");
+        System.out.println("║                                                   ║");
+        System.out.println("║     🧟 ZOMBIE APOCALYPSE SURVIVAL SIMULATOR 🧟    ║");
+        System.out.println("║                                                   ║");
+        System.out.println("║        Can you survive the undead horde?          ║");
+        System.out.println("║                                                   ║");
+        System.out.println("╚═══════════════════════════════════════════════════╝");
+    }
+
+    static void initializePlayer() {
+        System.out.print("\nEnter your survivor name: ");
+        String name = scanner.nextLine();
+        player = new Player();
+        player.name = name;
+        player.addItem("Baseball Bat");
+        player.addItem("First Aid Kit");
+        System.out.println("\n✓ Welcome to the apocalypse, " + name + "!");
+    }
+
+    static void dailyMenu() {
+        System.out.println("\n--- What will you do today? ---");
+        System.out.println("1. 🔍 Scavenge for supplies");
+        System.out.println("2. ⚔️  Hunt zombies");
+        System.out.println("3. 🏥 Rest and heal");
+        System.out.println("4. 🍖 Eat food");
+        System.out.println("5. 🎒 Check inventory");
+        System.out.println("6. 📊 View status");
+        System.out.println("7. 🏃 Try to escape the city");
+        System.out.println("8. 💀 Give up (end game)");
+        System.out.print("\nChoice: ");
+
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+
+        switch (choice) {
+            case 1: scavengeSupplies(); break;
+            case 2: huntZombies(); break;
+            case 3: rest(); break;
+            case 4: eatFood(); break;
+            case 5: checkInventory(); break;
+            case 6: player.showStatus(); break;
+            case 7: escapeCity(); break;
+            case 8: gameOver = true; gameOver(); break;
+            default: System.out.println("Invalid choice!");
+        }
+    }
+
+    static void scavengeSupplies() {
+        String location = locations[random.nextInt(locations.length)];
+        System.out.println("\n🔍 Exploring " + location + "...");
+        pause();
+
+        int encounterChance = random.nextInt(100);
+
+        if (encounterChance < 40) {
+            // Found supplies
+            int suppliesFound = random.nextInt(3) + 1;
+            int ammoFound = random.nextInt(10) + 5;
+
+            player.supplies += suppliesFound;
+            player.ammo += ammoFound;
+
+            System.out.println("✓ Found " + suppliesFound + " supplies and " + ammoFound + " ammo!");
+
+            // Random items
+            String[] items = {"Flashlight", "Radio", "Map", "Rope", "Knife", "Water Bottle"};
+            if (random.nextInt(100) < 50) {
+                String item = items[random.nextInt(items.length)];
+                player.addItem(item);
+            }
+
+        } else {
+            // Zombie encounter
+            System.out.println("🧟 ZOMBIES! You've been spotted!");
+            combatEncounter();
+        }
+    }
+
+    static void huntZombies() {
+        System.out.println("\n⚔️  You venture out to hunt zombies...");
+        pause();
+
+        int zombieCount = random.nextInt(3) + 1;
+        System.out.println(zombieCount + " zombie(s) approaching!");
+
+        for (int i = 0; i < zombieCount; i++) {
+            if (player.health <= 0) break;
+            combatEncounter();
+        }
+
+        if (player.health > 0) {
+            System.out.println("\n✓ You survived the hunt!");
+        }
+    }
+
+    static void combatEncounter() {
+        String[] zombieTypes = {"Walker", "Runner", "Tank", "Crawler"};
+        String type = zombieTypes[random.nextInt(zombieTypes.length)];
+
+        Zombie zombie;
+        switch (type) {
+            case "Runner":
+                zombie = new Zombie("Runner", 50, 25);
+                break;
+            case "Tank":
+                zombie = new Zombie("Tank", 150, 35);
+                break;
+            case "Crawler":
+                zombie = new Zombie("Crawler", 30, 15);
+                break;
+            default:
+                zombie = new Zombie("Walker", 80, 20);
+        }
+
+        System.out.println("\n⚠️  A " + zombie.type + " zombie appears!");
+        pause();
+
+        while (zombie.health > 0 && player.health > 0) {
+            System.out.println("\n--- Combat ---");
+            System.out.println("Zombie HP: " + zombie.health);
+            System.out.println("Your HP: " + player.health);
+            System.out.println("\n1. 🔫 Shoot (uses 2 ammo) - High damage");
+            System.out.println("2. ⚔️  Melee attack - Moderate damage");
+            System.out.println("3. 🏃 Run away");
+            System.out.print("Action: ");
+
+            int action = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (action) {
+                case 1: // Shoot
+                    if (player.ammo >= 2) {
+                        player.ammo -= 2;
+                        int damage = random.nextInt(40) + 30;
+                        zombie.health -= damage;
+                        System.out.println("💥 Hit! Dealt " + damage + " damage!");
+                    } else {
+                        System.out.println("❌ Not enough ammo!");
+                        continue;
+                    }
+                    break;
+
+                case 2: // Melee
+                    int meleeDamage = random.nextInt(25) + 15;
+                    zombie.health -= meleeDamage;
+                    System.out.println("⚔️  Hit! Dealt " + meleeDamage + " damage!");
+                    break;
+
+                case 3: // Run
+                    if (random.nextInt(100) < 60) {
+                        System.out.println("✓ You escaped!");
+                        return;
+                    } else {
+                        System.out.println("❌ Failed to escape!");
+                    }
+                    break;
+
+                default:
+                    System.out.println("Invalid action!");
+                    continue;
+            }
+
+            // Zombie attacks back
+            if (zombie.health > 0) {
+                int zombieDamage = random.nextInt(10) + zombie.damage;
+                player.health -= zombieDamage;
+                System.out.println("🧟 Zombie attacks! You take " + zombieDamage + " damage!");
+
+                if (player.health <= 0) {
+                    gameOver();
+                    return;
+                }
+            }
+        }
+
+        if (zombie.health <= 0) {
+            System.out.println("✓ Zombie eliminated!");
+            player.zombiesKilled++;
+
+            // Random loot
+            if (random.nextInt(100) < 50) {
+                int loot = random.nextInt(3) + 1;
+                player.supplies += loot;
+                System.out.println("Found " + loot + " supplies on the body!");
+            }
+        }
+    }
+
+    static void rest() {
+        System.out.println("\n💤 Resting for the day...");
+        pause();
+
+        if (player.supplies > 0) {
+            player.supplies--;
+            player.health += 30;
+            if (player.health > 100) player.health = 100;
+            System.out.println("✓ Health restored! (+30 HP)");
+        } else {
+            player.health += 10;
+            if (player.health > 100) player.health = 100;
+            System.out.println("⚠️  No supplies! Minimal healing (+10 HP)");
+        }
+
+        // Random event while resting
+        if (random.nextInt(100) < 20) {
+            System.out.println("\n🧟 Zombies found your hideout!");
+            combatEncounter();
+        }
+    }
+
+    static void eatFood() {
+        if (player.supplies >= 2) {
+            player.supplies -= 2;
+            player.hunger += 40;
+            if (player.hunger > 100) player.hunger = 100;
+            System.out.println("\n🍖 You ate food. Hunger restored!");
+        } else {
+            System.out.println("\n❌ Not enough supplies to eat!");
+        }
+    }
+
+    static void checkInventory() {
+        System.out.println("\n--- Inventory ---");
+        if (player.inventoryCount == 0) {
+            System.out.println("Empty");
+        } else {
+            for (int i = 0; i < player.inventoryCount; i++) {
+                System.out.println((i + 1) + ". " + player.inventory[i]);
+            }
+        }
+    }
+
+    static void escapeCity() {
+        System.out.println("\n🏃 Attempting to escape the city...");
+        pause();
+
+        if (player.daysSurvived < 7) {
+            System.out.println("❌ Too dangerous! Survive at least 7 days first.");
+            return;
+        }
+
+        System.out.println("You need to fight through a horde of zombies!");
+
+        for (int i = 0; i < 5; i++) {
+            if (player.health <= 0) break;
+            System.out.println("\nWave " + (i + 1) + " of 5");
+            combatEncounter();
+        }
+
+        if (player.health > 0) {
+            System.out.println("\n" + "=".repeat(50));
+            System.out.println("🎉 YOU ESCAPED THE CITY! 🎉");
+            System.out.println("=".repeat(50));
+            System.out.println("\nYou found a safe zone!");
+            System.out.println("Days Survived: " + player.daysSurvived);
+            System.out.println("Zombies Killed: " + player.zombiesKilled);
+            System.out.println("\n✓ GAME WON!");
+            gameOver = true;
+        }
+    }
+
+    static void gameOver() {
+        System.out.println("\n" + "=".repeat(50));
+        System.out.println("              💀 GAME OVER 💀");
+        System.out.println("=".repeat(50));
+        System.out.println("\nYou have fallen...");
+        System.out.println("\nFinal Stats:");
+        System.out.println("Days Survived: " + player.daysSurvived);
+        System.out.println("Zombies Killed: " + player.zombiesKilled);
+
+        String rank;
+        if (player.daysSurvived >= 30) rank = "LEGENDARY SURVIVOR";
+        else if (player.daysSurvived >= 20) rank = "VETERAN";
+        else if (player.daysSurvived >= 10) rank = "SURVIVOR";
+        else rank = "ROOKIE";
+
+        System.out.println("Rank: " + rank);
+        System.out.println("\nThe apocalypse continues...");
+        gameOver = true;
+    }
+
+    static void pause() {
+        try {
+            Thread.sleep(1500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
