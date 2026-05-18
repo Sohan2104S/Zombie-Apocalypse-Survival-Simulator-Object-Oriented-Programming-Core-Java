@@ -23,7 +23,7 @@ class Player {
 
     void showStatus() {
         System.out.println("\n╔════════════════════════════════════╗");
-        System.out.println("║        SURVIVOR STATUS             ║");
+        System.out.println("║        SURVIVOR STATUS  BAr           ║");
         System.out.println("╠════════════════════════════════════╣");
         System.out.printf("║ Name: %-28s ║%n", name);
         System.out.printf("║ Health: %-26d ║%n", health);
